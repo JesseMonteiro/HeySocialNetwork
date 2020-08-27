@@ -63,7 +63,7 @@
 
 <script>
 export default {
-  props: ["nameProp", "postProp", "imgProp"],
+  props: ["nameProp", "postProp"],
 
   data() {
     return {

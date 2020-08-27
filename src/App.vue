@@ -27,7 +27,6 @@
             @deletePost="deletePost(i)"
             :nameProp="post.user"
             :postProp="post"
-            :imgProp="post.foto"
           />
         </div>
       </div>
@@ -54,7 +53,8 @@
         </v-btn>
       </v-app-bar>
     </v-main>
-    <div>
+
+    <div class="plusFloatingBtn">
       <v-card>
         <v-card-text
           style="height: 300px;"
@@ -67,6 +67,7 @@
         </v-card-text>
       </v-card>
     </div>
+    
   </v-app>
 </template>
 
