@@ -2,23 +2,32 @@
   <v-app>
     <v-main>
       <v-app-bar fixed>
-        <img
-          src="https://avatars3.githubusercontent.com/u/8730443?s=400&u=219d957390dc25ee03418f7f9be0a677017a67be&v=4"
-          alt="Avatar"
-          class="avatar"
-        />
+        <v-btn
+          ><router-link to="/">
+            <img
+              src="https://avatars3.githubusercontent.com/u/8730443?s=400&u=219d957390dc25ee03418f7f9be0a677017a67be&v=4"
+              alt="Avatar"
+              class="avatar"
+            /> </router-link
+        ></v-btn>
+
         <div class="profileName">
-          <a href="https://github.com/JesseMonteiro">{{
-            name + " " + lasname
-          }}</a>
+          <li>
+            <router-link to="/profile">{{ name }}</router-link>
+          </li>
+        </div>
+        <div class="btn-dark">
+          <v-btn label="DarkMode" @click="toggleDarkTheme()">
+            <v-icon>mdi-brightness-6</v-icon>
+          </v-btn>
         </div>
         <div class="clean-page">
           <ClearPage @clearAll="clearPage($event)" />
         </div>
       </v-app-bar>
-
+      <router-view />
       <div class="posts-container">
-        <div v-for="(post, i) in posts" :key="i">
+        <div v-for="(post, i) in getPost" :key="i">
           <PostCard
             @upComment="saveComment($event, i)"
             @sendEdit="editPost($event, i)"
@@ -67,11 +76,11 @@
         </v-card-text>
       </v-card>
     </div>
-    
   </v-app>
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 import PostCard from "./components/PostCard.vue";
 import ClearPage from "./components/ClearPage.vue";
 export default {
@@ -80,29 +89,12 @@ export default {
     ClearPage,
   },
   data() {
+    console.log(this.$vuetify.theme.dark);
+    console.log(localStorage.getItem("dark_theme"));
+    this.$vuetify.theme.dark = !localStorage.getItem("dark_theme");
     return {
       name: "Jessé",
       lasname: "Monteiro Ferreira",
-      posts: [
-        {
-          user: "me",
-          text: "Hellow, nobre padawan",
-          comments: [],
-          like: 0,
-        },
-        {
-          user: "Princesa Leia",
-          text: "Help Me, Obi-Wan Kenobi. You're My Only Hope",
-          comments: [],
-          like: 0,
-        },
-        {
-          user: "Chewbacca",
-          text: "WUUAHAHHHAAAAAAAAAA.",
-          comments: [],
-          like: 0,
-        },
-      ],
       field: "",
       comments: [],
       hide: false,
@@ -111,10 +103,11 @@ export default {
       selectedFile: null,
     };
   },
+
   methods: {
     sendPost() {
       let posts = {
-        user: "me",
+        user: "Jesse Monteiro",
         text: this.field,
         comments: [],
         like: 0,
@@ -125,7 +118,7 @@ export default {
         console.log(this.foto);
         this.url = null;
       }
-      this.posts.push(posts);
+      this.$store.dispatch("posts/savePost", posts);
       this.field = "";
     },
     post() {
@@ -140,20 +133,45 @@ export default {
       console.log(event);
     },
     saveComment(comment, index) {
-      this.posts[index].comments.push(comment);
+      this.$store.dispatch("posts/saveComment", {
+        comment,
+        index,
+      });
     },
     editPost(post, index) {
       this.posts[index].text = post;
     },
     receiveLike(index) {
-      this.posts[index].like++;
+      this.$store.dispatch("posts/saveLikes", index);
     },
     deletePost(index) {
-      this.posts.splice(index, 1);
+      this.$store.dispatch("posts/deletePost", index);
     },
     clearPage() {
-      this.posts.splice(0);
+      this.$store.dispatch("posts/clearPosts");
     },
+    toggleDarkTheme() {
+      this.$vuetify.theme.dark = !this.$vuetify.theme.dark;
+      localStorage.setItem("dark_theme", this.$vuetify.theme.dark.toString());
+    },
+
+    mounted() {
+      const theme = localStorage.getItem("dark_theme");
+      if (theme) {
+        if (theme == "true") {
+          this.$vuetify.theme.dark = true;
+        } else {
+          this.$vuetify.theme.dark = false;
+        }
+      }
+    },
+    openProfile() {
+      this.$router.push("Profile");
+    },
+  },
+  computed: {
+    ...mapGetters("posts", ["getPost"]),
+    ...mapGetters("users", ["getNames"]),
   },
 };
 </script>
@@ -164,7 +182,6 @@ export default {
   padding-top: 64px;
   padding-top: 56px;
 }
-
 .icon-post {
   position: absolute;
   right: 20px;
@@ -185,5 +202,11 @@ export default {
   width: 50px;
   height: 50px;
   border-radius: 50%;
+}
+
+.btn-dark {
+  position: absolute;
+  right: 80px;
+  top: 10px;
 }
 </style>

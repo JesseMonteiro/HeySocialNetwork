@@ -3,8 +3,8 @@
     outlined
     class="ma-3"
     :class="{
-      'teal accent-4': postProp.user != 'me',
-      'grey lighten-2': postProp.user == 'me',
+      blue: postProp.user != 'me',
+      blue: postProp.user == 'me',
     }"
   >
     <v-btn @click="editPostStatus()" icon class="editButton">
@@ -33,7 +33,7 @@
     </div>
 
     <v-card-text>{{ postProp.text }}</v-card-text>
-    <div v-if="postProp.comments != ''">
+    <div v-if="postProp.comments && postProp.comments.length > 0">
       <v-card-text><h4>Comentários</h4></v-card-text>
       <v-card-subtitle class="font-weight-bold"
         >{{ postProp.comments }}
