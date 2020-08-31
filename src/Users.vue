@@ -3,8 +3,8 @@
 
     <div class="posts-container">
       <div v-for="(post, i) in getPost" :key="i">
-        <h1>{{ post.name }}</h1>
-        <div v-if="post.user == 'Jesse Monteiro' ">
+        <h1>{{ $route.params.username }}</h1>
+        <div v-if="post.user == $route.params.userName">
           <PostCard
             @upComment="saveComment($event, i)"
             @sendEdit="editPost($event, i)"

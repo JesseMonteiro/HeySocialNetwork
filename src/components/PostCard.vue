@@ -18,8 +18,10 @@
       <v-icon>{{ postProp.like }}</v-icon>
     </v-btn>
 
-    <v-card-subtitle class="font-weight-bold"
-      >{{ postProp.user != "me" ? postProp.user : "Eu" }}
+    <v-card-subtitle
+      class="font-weight-bold"
+      @click="openProfile(postProp.user)"
+      >{{ postProp.user }}
     </v-card-subtitle>
     <div class="picture" v-if="postProp.foto != null">
       <v-img
@@ -62,8 +64,10 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+
 export default {
-  props: ["nameProp", "postProp"],
+  props: ["nameProp", "postProp", "indexProp"],
 
   data() {
     return {
@@ -94,6 +98,14 @@ export default {
     deletePost() {
       this.$emit("deletePost", true);
     },
+    openProfile(userName) {
+      console.log(userName);
+      this.$router.push({ name: "user", params: { userName } });
+    },
+  },
+  computed: {
+    ...mapGetters("posts", ["getPost"]),
+    ...mapGetters("users", ["getName"]),
   },
 };
 </script>
@@ -116,3 +128,5 @@ export default {
   top: 2px;
 }
 </style>
+
+// postProp.user != "me" ? postProp.user : "Eu"

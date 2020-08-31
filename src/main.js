@@ -4,10 +4,17 @@ import vuetify from "./plugins/vuetify";
 import Vuex from "vuex";
 import VuexPersistence from "vuex-persist";
 import VueRouter from "vue-router";
+import Feed from "./Feed.vue";
+import Welcome from "./Welcome.vue";
 import Profile from "./Profile.vue";
+import Users from "./Users.vue";
+import Login from "./Login.vue"
+import Firebase from './firebase'
+// import { component } from "vue/types/umd";
 
 Vue.config.productionTip = false;
 
+Vue.use(Firebase)
 Vue.use(Vuex);
 Vue.use(VueRouter);
 
@@ -20,7 +27,7 @@ const vuexPersist = new VuexPersistence({
 const users = {
   namespaced: true,
   state: {
-    Users: [
+    users: [
       {
         name: "Jesse Montero",
       },
@@ -33,36 +40,42 @@ const users = {
       {
         name: "Chewbacca",
       },
+      {
+        name: "Maria Jose",
+      },
     ],
   },
   getters: {
-    getPost: (state) => {
-      return state.name;
-    }
-  }
-}
+    getName: (state) => {
+      return state.users;
+    },
+  },
+};
 
 const posts = {
   namespaced: true,
   state: {
     posts: [
       {
-        user: "Lucas Marlon",
+        user: "Jesse Monteiro",
         text: "Hellow, nobre padawan",
         comments: [],
         like: 0,
+        foto: null,
       },
       {
         user: "Maria Jose",
         text: "Help Me, Obi-Wan Kenobi. You're My Only Hope",
         comments: [],
         like: 0,
+        foto: null,
       },
       {
-        user: "Chewbacca",
+        user: "Lucas Marlon",
         text: "WUUAHAHHHAAAAAAAAAA.",
         comments: [],
         like: 0,
+        foto: null,
       },
     ],
   },
@@ -123,15 +136,38 @@ const store = new Vuex.Store({
   },
   plugins: [vuexPersist.plugin],
 });
+
 const routes = [
   {
     path: "/",
-    componente: App,
+    name: "",
+    component: Welcome,
+  },
+  {
+    path: "/welcome",
+    name: "welcome",
+    component: Welcome,
+  },
+  {
+    path: "/feed",
+    name: "feed",
+    component: Feed,
   },
   {
     path: "/profile",
-    componente: Profile,
+    name: "profile",
+    component: Profile,
   },
+  {
+    path: "/user",
+    name: "user",
+    component: Users,
+  },
+  {
+    path: "/login",
+    name: "login",
+    component: Login,
+  }
 ];
 
 const router = new VueRouter({
