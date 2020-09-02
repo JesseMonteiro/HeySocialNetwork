@@ -30,7 +30,7 @@ export default {
   },
   computed: {
     ...mapGetters("posts", ["getPost"]),
-    ...mapState("users", ["users"]),
+    ...mapState("users", ["getUserLog"]),
   },
 
   methods: {

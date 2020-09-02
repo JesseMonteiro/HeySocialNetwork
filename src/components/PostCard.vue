@@ -7,12 +7,17 @@
       blue: postProp.user == 'me',
     }"
   >
-    <v-btn @click="editPostStatus()" icon class="editButton">
-      <v-icon>mdi-circle-edit-outline</v-icon>
-    </v-btn>
-    <v-btn @click="deletePost()" icon class="deleteButton">
-      <v-icon>mdi-delete-empty</v-icon>
-    </v-btn>
+    <div v-if="nameProp == findName(nameProp)">
+      <v-btn @click="editPostStatus()" icon class="editButton">
+        <v-icon>mdi-circle-edit-outline</v-icon>
+      </v-btn>
+    </div>
+    <div v-if="nameProp == findName(nameProp)">
+      <v-btn @click="deletePost()" icon class="deleteButton">
+        <v-icon>mdi-delete-empty</v-icon>
+      </v-btn>
+    </div>
+
     <v-btn @click="sendLike()" icon class="likeButton">
       <v-icon>mdi-thumb-up</v-icon>
       <v-icon>{{ postProp.like }}</v-icon>
@@ -52,19 +57,22 @@
       ></v-text-field>
     </div>
     <div v-if="statusEdit == true">
-      <v-text-field
-        @keyup.enter="sendField(field), editPostStatus()"
-        v-model="postProp.text"
-        label="Digite o novo conteúdo"
-        solo
-        hide-details
-      ></v-text-field>
+      <div v-if="postProp.user == getUserLoged">
+        <v-text-field
+          @keyup.enter="sendField(field), editPostStatus()"
+          v-model="postProp.text"
+          label="Digite o novo conteúdo"
+          solo
+          hide-details
+        ></v-text-field>
+      </div>
     </div>
   </v-card>
 </template>
 
 <script>
 import { mapGetters } from "vuex";
+import firebase from "firebase/app";
 
 export default {
   props: ["nameProp", "postProp", "indexProp"],
@@ -102,10 +110,17 @@ export default {
       console.log(userName);
       this.$router.push({ name: "user", params: { userName } });
     },
+    findName(name) {
+    //eslint-disable-next-line
+      console.log(name)
+      console.log(firebase.auth().currentUser.displayName)
+      return firebase.auth().currentUser.displayName;
+    },
   },
   computed: {
     ...mapGetters("posts", ["getPost"]),
     ...mapGetters("users", ["getName"]),
+    ...mapGetters("users", ["getUserLoged"]),
   },
 };
 </script>
@@ -128,5 +143,3 @@ export default {
   top: 2px;
 }
 </style>
-
-// postProp.user != "me" ? postProp.user : "Eu"

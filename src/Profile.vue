@@ -1,10 +1,9 @@
 <template>
   <v-main>
-
     <div class="posts-container">
       <div v-for="(post, i) in getPost" :key="i">
         <h1>{{ post.name }}</h1>
-        <div v-if="post.user == 'Jesse Monteiro' ">
+        <div v-if="post.user == getUserLoged">
           <PostCard
             @upComment="saveComment($event, i)"
             @sendEdit="editPost($event, i)"
@@ -24,12 +23,15 @@
 import { mapState } from "vuex";
 import { mapGetters } from "vuex";
 import PostCard from "./components/PostCard.vue";
+import firebase from "firebase/app";
+
 export default {
   components: {
     PostCard,
   },
   computed: {
     ...mapGetters("posts", ["getPost"]),
+    ...mapGetters("users", ["getUserLoged"]),
     ...mapState("users", ["users"]),
   },
 
@@ -52,6 +54,10 @@ export default {
     consoleImprime(nome) {
       console.log(nome);
       return nome;
+    },
+    currentUser() {
+      console.log(firebase.auth.currentUser.displayName());
+      return firebase.auth.currentUser.displayName();
     },
   },
 };

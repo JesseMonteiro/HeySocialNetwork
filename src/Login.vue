@@ -1,47 +1,76 @@
 <template>
-    <div id="login">
-        <h1>Login</h1>
-        <input type="text" name="username" v-model="input.username" placeholder="Username" />
-        <input type="password" name="password" v-model="input.password" placeholder="Password" />
-        <button type="button" v-on:click="login()">Login</button>
+  <div id="login">
+    <v-img src="./hey.png" alt="Hey" />
+    <h1></h1>
+    <input type="text" name="username" v-model="email" placeholder="email" />
+    <input
+      type="password"
+      name="password"
+      v-model="password"
+      placeholder="Password"
+    />
+    <v-btn icon v-on:click="login()">
+      <v-icon x-large>mdi-login</v-icon>
+    </v-btn>
+    <div class="createAccount">
+      <router-link to="/register">
+        <v-btn color="primary"> Criar Conta</v-btn>
+      </router-link>
+      <v-btn icon v-on:click="loginGoogle()">
+        <v-icon x-large>mdi-google</v-icon>
+      </v-btn>
     </div>
+  </div>
 </template>
 
 <script>
-    export default {
-        name: 'Login',
-        data() {
-            return {
-                input: {
-                    username: "",
-                    password: ""
-                }
-            }
-        },
-        methods: {
-            login() {
-                if(this.input.username != "" && this.input.password != "") {
-                    if(this.input.username == this.$parent.mockAccount.username && this.input.password == this.$parent.mockAccount.password) {
-                        this.$emit("authenticated", true);
-                        this.$router.replace({ name: "secure" });
-                    } else {
-                        console.log("The username and / or password is incorrect");
-                    }
-                } else {
-                    console.log("A username and password must be present");
-                }
-            }
-        }
-    }
+import { mapGetters } from "vuex";
+
+export default {
+  name: "Login",
+  data() {
+    return {
+      dialog: false,
+      createAccDialog: false,
+      email: "",
+      password: "",
+    };
+  },
+  methods: {
+    //eslint-disable-next-line
+    async login() {
+      console.log(this.password);
+      const error = await this.$store.dispatch("users/login", {
+        email: this.email,
+        password: this.password,
+      });
+      console.log(error);
+      if (error != null) {
+        alert("Credenciais inválidas");
+      }
+      this.password = "";
+      this.email = "";
+    },
+    loginGoogle() {
+      this.$store.dispatch("users/loginGoogle");
+    },
+  },
+  computed: {
+    ...mapGetters("users", ["getLogError"]),
+  },
+};
 </script>
 
 <style scoped>
-    #login {
-        width: 500px;
-        border: 1px solid #CCCCCC;
-        background-color: #FFFFFF;
-        margin: auto;
-        margin-top: 200px;
-        padding: 20px;
-    }
+#login {
+  width: 700px;
+  margin: auto;
+  margin-top: 200px;
+  padding: 20px;
+}
+/* .createAccount {
+  padding: 1px;
+  margin: 1px;
+  width: 1px;
+} */
 </style>

@@ -8,13 +8,15 @@ import Feed from "./Feed.vue";
 import Welcome from "./Welcome.vue";
 import Profile from "./Profile.vue";
 import Users from "./Users.vue";
-import Login from "./Login.vue"
-import Firebase from './firebase'
-// import { component } from "vue/types/umd";
+import Login from "./Login.vue";
+import Register from "./Register.vue";
+import Firebase, { auth } from "./firebase";
+import firebase from "firebase/app";
+
 
 Vue.config.productionTip = false;
 
-Vue.use(Firebase)
+Vue.use(Firebase);
 Vue.use(Vuex);
 Vue.use(VueRouter);
 
@@ -30,24 +32,121 @@ const users = {
     users: [
       {
         name: "Jesse Montero",
-      },
-      {
-        name: "Maria Jose",
-      },
-      {
-        name: "Lucas Marlon",
-      },
-      {
-        name: "Chewbacca",
-      },
-      {
-        name: "Maria Jose",
+        email: "jesse@jesse.com",
+        senha: "123456",
       },
     ],
+    userLog: null,
+    logError: null,
   },
   getters: {
     getName: (state) => {
       return state.users;
+    },
+    getUserLog: (state) => {
+      return state.userLog;
+    },
+    getUserLoged() {
+      console.log(auth.currentUser);
+      return auth.currentUser.displayName;
+    },
+    getLogError(state){
+      return state.logError
+
+      
+    }
+  },
+
+  actions: {
+    //eslint-disable-next-line
+    async createAccount({ commit }, payload) {
+      const { name, email, password } = payload;
+      console.log("entrou current account", auth.currentUser);
+      auth
+        .createUserWithEmailAndPassword(email, password)
+        .then(async (res) => {
+          console.log("CHEGOU NO COMMIT");
+          commit("setUserLog", res.user),
+            await auth.currentUser
+              .updateProfile({
+                displayName: name,
+              })
+              .then(() => {
+                console.log("success");
+                console.log(auth.currentUser);
+              });
+          console.log(auth.currentUser);
+          console.log(res);
+          router.push("/feed");
+        })
+        .catch((err) => {
+          console.log("CHEGOU NO ERRO");
+          commit("setLogError", err);
+          console.log(err);
+        });
+    },
+    //eslint-disable-next-line
+    async login({ commit }, payload) {
+      const { email, password } = payload;
+      console.log(payload);
+      var error = null
+      auth
+        .signInWithEmailAndPassword(email, password)
+        .then((res) => {
+          commit("setUserLog", res.user);
+          router.push("/feed");
+          console.log(res);
+        })
+        .catch( function (err) {
+          commit("setLogError", err);
+          error = err
+          console.log(this)
+          alert("Credenciais invalidas" + err)
+          console.log("tá chegando no erro");
+          console.log(err);
+        });
+        return error
+    },
+    loginGoogle({ commit }) {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      auth
+        .signInWithPopup(provider)
+        .then(function(result) {
+          //eslint-disable-next-line
+          commit("setUserLog", result.user);
+          router.push("/feed");
+          console.log(result);
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+
+    //eslint-disable-next-line
+    logout({ commit }) {
+      // router.push("/login");
+      commit("logoutUser");
+    },
+  },
+  mutations: {
+    setUserLog(state, user) {
+      state.userLog = user;
+    },
+    setLogError(state, error) {
+      state.logError = error;
+    },
+    logoutUser(state) {
+      firebase.auth().signOut().then(function() {
+        // Sign-out successful.
+        console.log("usuario deslogado")
+      }).catch(function(error) {
+        // An error happened.
+        console.log(error)
+      });
+      state.userLog = null;
+    },
+    addLocalUser(state, user) {
+      state.push(user);
     },
   },
 };
@@ -167,7 +266,12 @@ const routes = [
     path: "/login",
     name: "login",
     component: Login,
-  }
+  },
+  {
+    path: "/register",
+    name: "register",
+    component: Register,
+  },
 ];
 
 const router = new VueRouter({

@@ -11,20 +11,43 @@
             </router-link>
           </div>
           <div class="feed">
+            <div v-if="getUserLog">
             <router-link to="/feed">
+           
               <v-btn label="feed">
                 <v-icon>mdi-chart-timeline</v-icon>
               </v-btn>
             </router-link>
+             </div>
           </div>
 
           <div class="acount">
+             <div v-if="getUserLog">
             <router-link to="/profile">
               <v-btn label="profile">
                 <v-icon>mdi-account</v-icon>
               </v-btn>
             </router-link>
+            </div>
           </div>
+
+          <div class="enterAcount">
+             <div v-if="!getUserLog">
+            <router-link to="/login">
+              <v-btn label="loguin">
+                <v-icon>mdi-account-key</v-icon>
+              </v-btn>
+            </router-link>
+            </div>
+            <div v-else>
+              <router-link to="/login">
+              <v-btn label="logout" @click="logout()">
+                <v-icon>mdi-logout-variant</v-icon>
+              </v-btn>
+            </router-link>
+            </div>
+          </div>
+
           <div class="btn-dark">
             <v-btn label="DarkMode" @click="toggleDarkTheme()">
               <v-icon>mdi-brightness-6</v-icon>
@@ -42,6 +65,8 @@
 
 <script>
 import ClearPage from "./components/ClearPage.vue";
+import { mapGetters } from "vuex";
+
 // import Feed from "./Feed.vue";
 export default {
   name: "App",
@@ -51,9 +76,7 @@ export default {
   components: {
     ClearPage,
   },
-  data: () => ({
-    
-  }),
+  data: () => ({}),
   methods: {
     toggleDarkTheme() {
       this.$vuetify.theme.dark = !this.$vuetify.theme.dark;
@@ -67,6 +90,9 @@ export default {
         throw new Error(`Problem handling something: ${err}.`);
       });
     },
+    logout(){
+       this.$store.dispatch("users/logout")
+    }
   },
   mounted() {
     const theme = localStorage.getItem("dark_theme");
@@ -78,7 +104,9 @@ export default {
       }
     }
   },
-  
+  computed: {
+    ...mapGetters("users", ["getUserLog"]),
+  },
 };
 </script>
 
@@ -105,10 +133,16 @@ export default {
   top: 15px;
 }
 
+.enterAcount {
+  position: absolute;
+  right: 160px;
+  top: 12px;
+}
+
 .btn-dark {
   position: absolute;
   right: 80px;
-  top: 10px;
+  top: 12px;
 }
 .welcome {
   position: absolute;
@@ -126,5 +160,4 @@ export default {
   right: 80px;
   top: 500px;
 }
-
 </style>

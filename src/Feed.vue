@@ -53,6 +53,7 @@
 <script>
 import { mapGetters } from "vuex";
 import PostCard from "./components/PostCard.vue";
+import firebase from "firebase/app";
 export default {
   components: {
     PostCard,
@@ -74,7 +75,7 @@ export default {
   methods: {
     sendPost() {
       let posts = {
-        user: "Jesse Monteiro",
+        user: firebase.auth().currentUser.displayName,
         text: this.field,
         comments: [],
         like: 0,
@@ -129,6 +130,8 @@ export default {
   computed: {
     ...mapGetters("posts", ["getPost"]),
     ...mapGetters("users", ["getName"]),
+    ...mapGetters("users", ["getUserLog"]),
+    ...mapGetters("users", ["getUserLoged"]),
   },
   mounted() {
     const theme = localStorage.getItem("dark_theme");
