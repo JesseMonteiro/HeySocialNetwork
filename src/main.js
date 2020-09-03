@@ -10,9 +10,8 @@ import Profile from "./Profile.vue";
 import Users from "./Users.vue";
 import Login from "./Login.vue";
 import Register from "./Register.vue";
-import Firebase, { auth } from "./firebase";
+import Firebase, { auth, firestore, storage } from "./firebase";
 import firebase from "firebase/app";
-
 
 Vue.config.productionTip = false;
 
@@ -50,11 +49,9 @@ const users = {
       console.log(auth.currentUser);
       return auth.currentUser.displayName;
     },
-    getLogError(state){
-      return state.logError
-
-      
-    }
+    getLogError(state) {
+      return state.logError;
+    },
   },
 
   actions: {
@@ -89,7 +86,7 @@ const users = {
     async login({ commit }, payload) {
       const { email, password } = payload;
       console.log(payload);
-      var error = null
+      var error = null;
       auth
         .signInWithEmailAndPassword(email, password)
         .then((res) => {
@@ -97,15 +94,15 @@ const users = {
           router.push("/feed");
           console.log(res);
         })
-        .catch( function (err) {
+        .catch(function(err) {
           commit("setLogError", err);
-          error = err
-          console.log(this)
-          alert("Credenciais invalidas" + err)
+          error = err;
+          console.log(this);
+          alert("Credenciais invalidas" + err);
           console.log("tá chegando no erro");
           console.log(err);
         });
-        return error
+      return error;
     },
     loginGoogle({ commit }) {
       var provider = new firebase.auth.GoogleAuthProvider();
@@ -136,13 +133,17 @@ const users = {
       state.logError = error;
     },
     logoutUser(state) {
-      firebase.auth().signOut().then(function() {
-        // Sign-out successful.
-        console.log("usuario deslogado")
-      }).catch(function(error) {
-        // An error happened.
-        console.log(error)
-      });
+      firebase
+        .auth()
+        .signOut()
+        .then(function() {
+          // Sign-out successful.
+          console.log("usuario deslogado");
+        })
+        .catch(function(error) {
+          // An error happened.
+          console.log(error);
+        });
       state.userLog = null;
     },
     addLocalUser(state, user) {
@@ -160,21 +161,21 @@ const posts = {
         text: "Hellow, nobre padawan",
         comments: [],
         like: 0,
-        foto: null,
+        file: null,
       },
       {
         user: "Maria Jose",
         text: "Help Me, Obi-Wan Kenobi. You're My Only Hope",
         comments: [],
         like: 0,
-        foto: null,
+        file: null,
       },
       {
         user: "Lucas Marlon",
         text: "WUUAHAHHHAAAAAAAAAA.",
         comments: [],
         like: 0,
-        foto: null,
+        file: null,
       },
     ],
   },
@@ -187,7 +188,28 @@ const posts = {
     },
   },
   actions: {
-    savePost({ commit }, post) {
+    async savePost({ commit }, post) {
+      try {
+        const createdAt = +new Date();
+        if (post.foto) {
+          console.log(`${post.user}/img`, post.foto);
+          const uploadResult = await storage
+            .ref()
+            .child(`${post.user}/img/${createdAt}`)
+            .put(post.foto);
+          console.log(uploadResult);
+          post.file = true;
+        } else {
+          post.file = false;
+        }
+        delete post.foto;
+        post.created_at = createdAt;
+        console.log(JSON.stringify(post, null, 2));
+        await firestore.collection("posts").add(post);
+        console.log("ao infinito e além");
+      } catch (err) {
+        console.error(err);
+      }
       commit("addPost", post);
     },
     saveComment({ commit }, { comment, index }) {

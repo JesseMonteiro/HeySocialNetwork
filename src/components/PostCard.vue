@@ -28,9 +28,9 @@
       @click="openProfile(postProp.user)"
       >{{ postProp.user }}
     </v-card-subtitle>
-    <div class="picture" v-if="postProp.foto != null">
+    <div class="picture" v-if="src">
       <v-img
-        :src="postProp.foto"
+        :src="src"
         lazy-src="https://picsum.photos/id/11/100/60"
         aspect-ratio="1"
         class="grey lighten-2"
@@ -40,10 +40,10 @@
     </div>
 
     <v-card-text>{{ postProp.text }}</v-card-text>
-    <div v-if="postProp.comments && postProp.comments.length > 0">
+    <div v-if="comments && comments.length > 0">
       <v-card-text><h4>Comentários</h4></v-card-text>
       <v-card-subtitle class="font-weight-bold"
-        >{{ postProp.comments }}
+        >{{ comments }}
       </v-card-subtitle>
     </div>
 
@@ -59,8 +59,8 @@
     <div v-if="statusEdit == true">
       <div v-if="postProp.user == getUserLoged">
         <v-text-field
-          @keyup.enter="sendField(field), editPostStatus()"
-          v-model="postProp.text"
+          @keyup.enter="editPost(field), editPostStatus()"
+          v-model="field"
           label="Digite o novo conteúdo"
           solo
           hide-details
@@ -73,21 +73,40 @@
 <script>
 import { mapGetters } from "vuex";
 import firebase from "firebase/app";
+import { storage } from "../firebase";
+import { firestore } from "../firebase";
 
 export default {
-  props: ["nameProp", "postProp", "indexProp"],
+  props: ["nameProp", "postProp", "indexProp", "idsProp"],
 
   data() {
     return {
       field: "",
       statusEdit: false,
+      src: null,
+      comments: [],
     };
   },
 
   methods: {
-    sendField(field) {
-      this.$emit("upComment", field);
-      this.field = "";
+    async sendField(field) {
+      var commentAdd = {
+        name: firebase.auth().currentUser.displayName,
+        comment: field,
+        created_at: +new Date(),
+      };
+
+      try {
+        console.log(this.idsProp[this.indexProp]);
+        console.log(firestore);
+        await firestore
+          .collection("posts")
+          .doc(this.idsProp[this.indexProp])
+          .collection("comments")
+          .add(commentAdd);
+      } catch (err) {
+        console.log(err);
+      }
     },
     sendEdit() {
       this.$emit("sendPost", true);
@@ -97,13 +116,47 @@ export default {
       this.statusEdit = !this.statusEdit;
       console.log(this.statusEdit);
     },
-    editPost() {
+    editPost(field) {
+      firestore
+        .collection("posts")
+        .doc(this.idsProp[this.indexProp])
+        .update({
+          text: field,
+        })
+        .then(function() {
+          console.log("Document successfully altered!");
+        })
+        .catch(function(error) {
+          console.error("Error altered document: ", error);
+        });
       this.$emit("editedPost", this.field);
     },
     sendLike() {
+      firestore
+        .collection("posts")
+        .doc(this.idsProp[this.indexProp])
+        .update({
+          like: this.postProp.like++,
+        })
+        .then(function() {
+          console.log("Document successfully altered!");
+        })
+        .catch(function(error) {
+          console.error("Error altered document: ", error);
+        });
       this.$emit("sendLike", true);
     },
     deletePost() {
+      firestore
+        .collection("posts")
+        .doc(this.idsProp[this.indexProp])
+        .delete()
+        .then(function() {
+          console.log("Document successfully deleted!");
+        })
+        .catch(function(error) {
+          console.error("Error removing document: ", error);
+        });
       this.$emit("deletePost", true);
     },
     openProfile(userName) {
@@ -111,9 +164,9 @@ export default {
       this.$router.push({ name: "user", params: { userName } });
     },
     findName(name) {
-    //eslint-disable-next-line
-      console.log(name)
-      console.log(firebase.auth().currentUser.displayName)
+      //eslint-disable-next-line
+      console.log(name);
+      console.log(firebase.auth().currentUser.displayName);
       return firebase.auth().currentUser.displayName;
     },
   },
@@ -121,6 +174,31 @@ export default {
     ...mapGetters("posts", ["getPost"]),
     ...mapGetters("users", ["getName"]),
     ...mapGetters("users", ["getUserLoged"]),
+  },
+  async created() {
+    if (this.postProp.file) {
+      const url = await storage
+        .ref()
+        .child(`${this.postProp.user}/img/${this.postProp.created_at}`)
+        .getDownloadURL();
+      console.log(url);
+      this.src = url;
+    }
+    firestore
+      .collection("posts")
+      .doc(this.idsProp[this.indexProp])
+      .collection("comments")
+      .orderBy("created_at", "asc")
+      .onSnapshot((querySnapshot) => {
+        this.comments = [];
+        querySnapshot.forEach((doc) => {
+          var com = {
+            name: doc.data().name,
+            comment: doc.data().comment,
+          };
+          this.comments.push(com);
+        });
+      });
   },
 };
 </script>

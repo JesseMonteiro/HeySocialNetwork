@@ -1,9 +1,9 @@
 <template>
   <div>
     <div class="posts-container">
-      <div v-for="(post, i) in getPost" :key="i">
+      <div v-for="(post, i) in posts" :key="i">
         <PostCard
-          @upComment="saveComment($event, i)"
+          @upComment="saveComment($event, i, id)"
           @sendEdit="editPost($event, i)"
           @editedPost="editPost($event, i)"
           @sendLike="receiveLike(i)"
@@ -11,6 +11,7 @@
           :nameProp="post.user"
           :postProp="post"
           :indexProp="i"
+          :idsProp="ids"
         />
       </div>
     </div>
@@ -26,10 +27,16 @@
 
       <div classe="uploadPhoto">
         <v-btn @click="picturePopup()" x-large icon color="blue">
-          <v-icon>mdi-camera-plus</v-icon>
+          <v-file-input
+            v-model="file"
+            accept="image/*"
+            label="Clique aqui para adicionar uma imagem"
+            solo
+            hide-details
+          ></v-file-input>
         </v-btn>
-        <input v-if="picture" type="file" @change="onFileSelected" />
-        <v-card outlined></v-card>
+        <!-- <input v-if="picture" type="file" @change="onFileSelected" />
+        <v-card outlined></v-card> -->
       </div>
 
       <v-btn @click="sendPost()" x-large icon color="blue">
@@ -54,6 +61,7 @@
 import { mapGetters } from "vuex";
 import PostCard from "./components/PostCard.vue";
 import firebase from "firebase/app";
+import { firestore } from "./firebase";
 export default {
   components: {
     PostCard,
@@ -69,6 +77,10 @@ export default {
       picture: null,
       url: null,
       selectedFile: null,
+      posts: [],
+      fileMode: false,
+      file: null,
+      ids: [],
     };
   },
 
@@ -79,13 +91,9 @@ export default {
         text: this.field,
         comments: [],
         like: 0,
-        foto: null,
+        foto: this.file,
       };
-      if (this.url != null) {
-        posts.foto = this.url;
-        console.log(this.foto);
-        this.url = null;
-      }
+
       this.$store.dispatch("posts/savePost", posts);
       this.field = "";
     },
@@ -93,6 +101,7 @@ export default {
       this.hide = !this.hide;
     },
     picturePopup() {
+      this.fileMode = !this.fileMode;
       this.picture = !this.picture;
     },
     onFileSelected(event) {
@@ -113,6 +122,7 @@ export default {
       this.$store.dispatch("posts/saveLikes", index);
     },
     deletePost(index) {
+     
       this.$store.dispatch("posts/deletePost", index);
     },
     clearPage() {
@@ -142,6 +152,19 @@ export default {
         this.$vuetify.theme.dark = false;
       }
     }
+  },
+  created() {
+    firestore
+      .collection("posts")
+      .orderBy("created_at", "asc")
+      .onSnapshot((querySnapshot) => {
+        this.posts = [];
+        querySnapshot.forEach((doc) => {
+          this.posts.push(doc.data());
+          console.log(doc.id);
+          this.ids.push(doc.id);
+        });
+      });
   },
 };
 </script>
